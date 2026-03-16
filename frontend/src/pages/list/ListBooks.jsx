@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'  // ← Adicione useCallback
 import { Link } from 'react-router-dom'
 import { api } from '../../services/handleBooks'
 import { buscarCotacoes } from '../../services/handleExternalAPI'
@@ -9,29 +9,37 @@ export default function ListBooks() {
   const [msg, setMsg] = useState('')
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    carregarTudo()
+  // ✅ Função movida para antes do useEffect + useCallback
+  const carregarTudo = useCallback(async () => {
+    try {
+      const [livrosRes, cotacoesRes] = await Promise.all([api.listar(), buscarCotacoes()])
+      
+      if (livrosRes.ok) {
+        // ✅ Debug: verifique se os livros têm ID válido
+        console.log('🔍 Livros recebidos:', livrosRes.data)
+        setLivros(livrosRes.data)
+      } else {
+        setMsg('❌ Erro: ' + livrosRes.error)
+      }
+      
+      if (cotacoesRes.ok) setCotacoes(cotacoesRes)
+    } catch (error) {
+      console.error('Erro ao carregar:', error)
+      setMsg('❌ Erro ao conectar com o servidor')
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
-  const carregarTudo = async () => {
-    const [livrosRes, cotacoesRes] = await Promise.all([api.listar(), buscarCotacoes()])
-    if (livrosRes.ok) setLivros(livrosRes.data)
-    else setMsg('❌ Erro: ' + livrosRes.error)
-    if (cotacoesRes.ok) setCotacoes(cotacoesRes)
-    setLoading(false)
-  }
-
+  useEffect(() => {
+    carregarTudo()
+  }, [carregarTudo])  // ← Dependência correta com useCallback
 
   const cotacao = async () => {
     try {
       const res = await buscarCotacoes()
-
-      if (res.ok) {
-        setCotacoes(res)
-      } else {
-        console.error(res.error)
-      }
-
+      if (res.ok) setCotacoes(res)
+      else console.error(res.error)
     } catch (e) {
       console.error('Erro ao buscar cotações:', e)
     }
@@ -87,17 +95,48 @@ export default function ListBooks() {
             <tr><th>ID</th><th>Título</th><th>Autor</th><th>Ações</th></tr>
           </thead>
           <tbody>
-            {livros.map(l => (
-              <tr key={l.id}>
-                <td>{l.id}</td>
-                <td>{l.titulo}</td>
-                <td>{l.autor}</td>
-                <td className="acoes">
-                  <Link to={`/atualizar/${l.id}`} className="btn btn-edit">✏️</Link>
-                  <Link to={`/deletar/${l.id}`} className="btn btn-delete">🗑️</Link>
-                </td>
-              </tr>
-            ))}
+            {livros.map(l => {
+              // ✅ Debug individual por livro
+              console.log(`🔍 Livro ${l.titulo}:`, { id: l.id, tipo: typeof l.id })
+              
+              // ✅ Fallback para ID inválido
+              const bookId = l.id ?? l._id ?? 'sem-id'
+              
+              return (
+                <tr key={bookId}>
+                  <td>{l.id ?? 'N/A'}</td>
+                  <td>{l.titulo}</td>
+                  <td>{l.autor}</td>
+                  <td className="acoes">
+                    {/* ✅ Previne link com undefined */}
+                    <Link 
+                      to={`/atualizar/${bookId}`} 
+                      className="btn btn-edit"
+                      onClick={(e) => {
+                        if (bookId === 'sem-id') {
+                          e.preventDefault()
+                          alert('⚠️ Este livro não tem ID válido!')
+                        }
+                      }}
+                    >
+                      ✏️
+                    </Link>
+                    <Link 
+                      to={`/deletar/${bookId}`} 
+                      className="btn btn-delete"
+                      onClick={(e) => {
+                        if (bookId === 'sem-id') {
+                          e.preventDefault()
+                          alert('⚠️ Este livro não tem ID válido!')
+                        }
+                      }}
+                    >
+                      🗑️
+                    </Link>
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       )}
