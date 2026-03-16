@@ -1,9 +1,31 @@
 [
   {
-    "id": 1,
     "titulo": "Dom Casmurro",
     "autor": "Machado de Assis",
-    "isbn": "978-85-254-2830-0",
-    "ano": 1899
+    "isbn": "978-85-254-2830-0"
+  },
+  {
+    "id": null,
+    "titulo": "Harry Potter",
+    "autor": "J Rollien",
+    "isbn": "61461781756641617"
+  },
+  {
+    "id": null,
+    "titulo": "Ben 10 - E Então Eram 10 (História)",
+    "autor": "Fundamento",
+    "isbn": "8576767201"
+  },
+  {
+    "id": null,
+    "titulo": "Crepusculo",
+    "autor": "ermione ",
+    "isbn": "61461781756641617"
+  },
+  {
+    "id": null,
+    "titulo": "Harry Potter",
+    "autor": "J Rollien",
+    "isbn": "8576767201"
   }
 ]

@@ -1,6 +1,3 @@
-function teste(){
-    return true;
-}
 const express = require('express');
 const cors = require('cors');
 const livrosRoutes = require('./routes/livros');
